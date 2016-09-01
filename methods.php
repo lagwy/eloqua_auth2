@@ -15,6 +15,7 @@ class Auth2Eloqua
     private $refresh_token;
     private $url_access_token = "https://login.eloqua.com/auth/oauth2/token";
     private $url_client_info = "https://login.eloqua.com/id";
+    private $url_contacts_fields = "https://secure.p03.eloqua.com/api/bulk/2.0/contacts/fields";
     private $client_info;
 
     public function __construct($site, $user, $password, $client_id, $client_secret, $redirect_uri)
@@ -137,5 +138,23 @@ class Auth2Eloqua
             $this->getClientInfo();
         }
         return $this->client_info->getBaseUrl();
+    }
+
+    public function getContactFields(){
+        $authorization_header = $this->token_type . ' ' . $this->access_token;
+        // Setup cURL
+        $ch = curl_init($this->url_contacts_fields);
+        curl_setopt_array($ch, array(
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_HTTPHEADER => array(
+                'Authorization: ' . $authorization_header,
+                'Accept: application/json'
+            )
+        ));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+
+        $response = curl_exec($ch);
+        return $response;
     }
 }

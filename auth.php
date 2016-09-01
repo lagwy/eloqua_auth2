@@ -20,4 +20,6 @@ echo "Token type: " . $client->getTokenType() . '<br><br>';
 
 // Get client info
 $client->getClientInfo();
-echo 'Display Name: ' . $client->getDisplayName();
+echo 'Display Name: ' . $client->getDisplayName() . '<br><br>';
+
+echo $client->getContactFields();
