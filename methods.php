@@ -15,7 +15,6 @@ class Auth2Eloqua
     private $refresh_token;
     private $url_access_token = "https://login.eloqua.com/auth/oauth2/token";
     private $url_client_info = "https://login.eloqua.com/id";
-    private $url_contacts_fields = "https://secure.p03.eloqua.com/api/bulk/2.0/contacts/fields";
     private $client_info;
 
     public function __construct($site, $user, $password, $client_id, $client_secret, $redirect_uri)
@@ -79,7 +78,8 @@ class Auth2Eloqua
     // Not working yet
     public function refreshAccessToken()
     {
-        $authorization_header = 'Basic ' . base64_encode($this->site . '\\' . $this->user) . ':' . $this->password;
+        // Basic auth to refresh access token
+        $authorization_header = 'Basic ' . base64_encode($this->client_id . ':' . $this->client_secret);
 
         // Set request body
         $postdata = Array('grant_type' => 'refresh_token', 'scope' => 'full',
@@ -101,7 +101,11 @@ class Auth2Eloqua
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 
         $response = curl_exec($ch);
-        return $response;
+        $response_array = (array)json_decode($response);
+        $this->access_token = $response_array['access_token'];
+        $this->token_type = $response_array['token_type'];
+        $this->expires_in = $response_array['expires_in'];
+        $this->refresh_token = $response_array['refresh_token'];
     }
 
     // client info
@@ -139,11 +143,22 @@ class Auth2Eloqua
         }
         return $this->client_info->getBaseUrl();
     }
+    
+    public function getBulkUrl(){
+        if (!isset($this->client_info)){
+            $this->getClientInfo();
+        }
+        return $this->client_info->getRestBulk();
+    }
 
-    public function getContactFields(){
+    // GET method
+    public function getBulk($endpoint){ 
         $authorization_header = $this->token_type . ' ' . $this->access_token;
+
+        $url_bulk = str_replace("{version}", "2.0", $this->client_info->getRestBulk()) . $endpoint;
+
         // Setup cURL
-        $ch = curl_init($this->url_contacts_fields);
+        $ch = curl_init($url_bulk);
         curl_setopt_array($ch, array(
             CURLOPT_RETURNTRANSFER => TRUE,
             CURLOPT_HTTPHEADER => array(

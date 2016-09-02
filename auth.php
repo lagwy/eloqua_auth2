@@ -22,4 +22,16 @@ echo "Token type: " . $client->getTokenType() . '<br><br>';
 $client->getClientInfo();
 echo 'Display Name: ' . $client->getDisplayName() . '<br><br>';
 
-echo $client->getContactFields();
+// Refrescar el access token
+$client->refreshAccessToken();
+echo "access_token: " . $client->getAccessToken() . '<br>';
+echo "expires_in: " . $client->getExpiration() . '<br>';
+echo "Token type: " . $client->getTokenType() . '<br><br>';
+
+echo "Bulk url: " . $client->getBulkUrl() . '<br><br>';
+
+// Llamada para obtener los campos de contactos
+echo $client->getBulk("contacts/fields") . '<br><br>';
+
+// Llamada para obtener los grupos de correos
+echo $client->getBulk("emailGroups");
